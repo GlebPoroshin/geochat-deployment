@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  auth-service:
+    build:
+      context: ..
+      dockerfile: geochat-auth-service/Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - SERVER_ADDRESS=${SERVER_ADDRESS}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_SSL_MODE=${DB_SSL_MODE}
+      - JWT_SECRET=${JWT_SECRET}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+    depends_on:
+      - kafka
+      - postgres
+
+#  gateway-service:
+#    build:
+#      context: ..
+#      dockerfile: geochat-gateway-service/Dockerfile
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - auth-service
+
+#  user-service:
+#    build:
+#      context: ..
+#      dockerfile: geochat-user-service/Dockerfile
+#    ports:
+#      - "8082:8082"
+#    depends_on:
+#      - kafka
+#      - postgres
+
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    ports:
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+
+  kafka:
+    image: bitnami/kafka:latest
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+    depends_on:
+      - zookeeper
+
+  postgres:
+    image: postgres:14
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: geochat
