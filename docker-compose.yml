@@ -22,24 +22,21 @@ services:
       - kafka
       - postgres
 
-#  gateway-service:
-#    build:
-#      context: ..
-#      dockerfile: geochat-gateway-service/Dockerfile
-#    ports:
-#      - "8080:8080"
-#    depends_on:
-#      - auth-service
-
-#  user-service:
-#    build:
-#      context: ..
-#      dockerfile: geochat-user-service/Dockerfile
-#    ports:
-#      - "8082:8082"
-#    depends_on:
-#      - kafka
-#      - postgres
+  gateway-service:
+    build:
+      context: ..
+      dockerfile: geochat-gateway-service/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - AUTH_SERVICE_URL=${http://auth-service:8081}
+      - USER_SERVICE_URL=${http://user-service:8082}
+      - CHAT_SERVICE_URL=${http://chat-service:8083}
+      - EVENT_SERVICE_URL=${http://event-service:8084}
+      - NOTIFICATION_SERVICE_URL=${http://notification-service:8085}
+      - PRESENCE_SERVICE_URL=${http://presence-service:8086}
+    depends_on:
+      - auth-service
 
   zookeeper:
     image: bitnami/zookeeper:latest
@@ -66,6 +63,6 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: geochat
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
